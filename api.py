@@ -9,6 +9,9 @@ MAC = "00:1C:97:18:7B:04"
 class web_server(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         print("GET REQUEST RECEIVED")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain")
+        self.end_headers()
         if self.path == "/state":
             print("Getting state")
             state = 1
@@ -23,8 +26,6 @@ class web_server(http.server.SimpleHTTPRequestHandler):
             temp = stagg.get_current_temp()
             print("value =", str(temp))
             self.wfile.write(bytes(str(temp), "utf-8"))
-        self.send_response(200)
-        self.end_headers()
 
     def do_POST(self):
         print("POST REQUEST RECEIVED")
@@ -44,6 +45,7 @@ class web_server(http.server.SimpleHTTPRequestHandler):
             degree_f = round(convert_c_to_f(float(data['value'])))
             print("Setting target temperature to:", degree_f)
             stagg.set_temp(degree_f)
+            self.wfile.write(bytes(str(degree_f), "utf-8"))
         self.send_response(200)
         self.end_headers()
 
