@@ -14,7 +14,8 @@ class web_server(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         if self.path == "/state":
             print("Getting state")
-            state = 1
+            state = 1 if stagg.get_current_temp() > 32 else 0
+            print("value =", str(state))
             self.wfile.write(bytes(str(state), "utf-8"))
         elif self.path == "/target_temp":
             print("Getting target temp")
