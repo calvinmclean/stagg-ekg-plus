@@ -81,15 +81,3 @@ class StaggEKG(btle.Peripheral):
         if not self.connected:
             self.connect()
         self.characteristic.write(bytes.fromhex("efdd0a0400000400"), withResponse=False)
-
-# gatttool -b 00:1C:97:18:7B:04 -I
-# > connect
-# > char-write-cmd 0x000d efdd0b3031323334353637383930313
-# > char-write-cmd 0x000d efdd0a0000010100
-# > char-write-cmd 0x000d efdd0a0400000400
-
-# Subscribing:
-# char-write-req 0x000e 0100
-# char-write-cmd 0x000d efdd0b3031323334353637383930313233349a6d
-# stagg.writeCharacteristic(14, b"\x01\x00")
-# stagg.authenticate()

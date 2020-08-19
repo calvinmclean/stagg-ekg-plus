@@ -30,3 +30,18 @@ StandardError=syslog
 [Install]
 WantedBy=multi-user.target
 ```
+
+## More Info
+These are some `gattool` commands that were really useful when figuring this stuff out:
+```bash
+gatttool -b $KETTLE_MAC -I
+# connect, authenticate, and turn on then off
+> connect
+> char-write-cmd 0x000d efdd0b3031323334353637383930313
+> char-write-cmd 0x000d efdd0a0000010100
+> char-write-cmd 0x000d efdd0a0400000400
+
+# subscribing
+> char-write-req 0x000e 0100
+> char-write-cmd 0x000d efdd0b3031323334353637383930313233349a6d
+```
