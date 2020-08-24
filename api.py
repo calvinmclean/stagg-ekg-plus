@@ -5,6 +5,7 @@ from stagg_ekg_plus import StaggEKG
 
 PORT = 8000
 MAC = "00:1C:97:18:7B:04"
+LISTEN_ON = "0.0.0.0"
 
 class web_server(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -59,6 +60,7 @@ def convert_c_to_f(temp):
 
 # Allow reuse of the socket after killing httpd
 socketserver.TCPServer.allow_reuse_address = True
+with socketserver.TCPServer((LISTEN_ON, PORT), web_server) as httpd:
     # httpd.serve_forever()
     print("STARTED")
     try:
