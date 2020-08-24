@@ -57,7 +57,8 @@ def convert_c_to_f(temp):
     conversion = round(9.0 / 5.0 * temp + 32, 2)
     return conversion
 
-with socketserver.TCPServer(("localhost", PORT), web_server) as httpd:
+# Allow reuse of the socket after killing httpd
+socketserver.TCPServer.allow_reuse_address = True
     # httpd.serve_forever()
     print("STARTED")
     try:
