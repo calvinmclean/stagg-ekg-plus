@@ -73,7 +73,6 @@ class StaggEKG(btle.Peripheral):
                 return notifications[i - 2], notifications[i - 1]
             return 0, 0
 
-
     def get_current_temp(self):
         return self._get_temps()[0][0]
 
