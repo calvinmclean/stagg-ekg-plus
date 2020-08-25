@@ -1,5 +1,6 @@
 from bluepy import btle
 from bluepy.btle import BTLEInternalError, BTLEDisconnectError
+from time import sleep
 
 class StaggEKGDelegate(btle.DefaultDelegate):
     """
@@ -34,13 +35,15 @@ class StaggEKG(btle.Peripheral):
 
     def connect(self):
         attempts = 0
-        while attempts < 5:
+        while attempts < 10:
             try:
                 super().__init__(self.MAC)
                 break
             except (BTLEInternalError, BTLEDisconnectError) as e:
                 attempts += 1
                 print("Failed to connect... Attempt: %s Error: %s" % (attempts, e))
+                print("Retrying in 5 seconds...")
+                sleep(5)
         self.service = self.getServiceByUUID("00001820-0000-1000-8000-00805f9b34fb")
         self.characteristic = self.service.getCharacteristics()[0]
         # Authenticate
@@ -57,7 +60,12 @@ class StaggEKG(btle.Peripheral):
             raise ValueError("temp must be between 104 and 212")
         if not self.connected:
             self.connect()
-        self.characteristic.write(bytes.fromhex("efdd0a0001{hex}{hex}01".format(hex=hex(temp)[2:])), withResponse=False)
+        try:
+            self.characteristic.write(bytes.fromhex("efdd0a0001{hex}{hex}01".format(hex=hex(temp)[2:])), withResponse=False)
+        except (BTLEInternalError, BTLEDisconnectError) as e:
+            print("Connection error! Reconnecting... %s" % e)
+            self.connect()
+            self.characteristic.write(bytes.fromhex("efdd0a0001{hex}{hex}01".format(hex=hex(temp)[2:])), withResponse=False)
 
     def _get_temps(self):
         self.writeCharacteristic(self.characteristic.valHandle + 1, b"\x01\x00")
@@ -78,7 +86,7 @@ class StaggEKG(btle.Peripheral):
         try:
            current_temp =  self._get_temps()[0][0]
         except (BTLEInternalError, BTLEDisconnectError) as e:
-            print("Connection error! Reconnecting... %s" % e)
+            print("Connection error! Reconnecting... Error: %s" % e)
             self.connect()
             try:
                 current_temp =  self._get_temps()[0][0]
