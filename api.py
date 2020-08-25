@@ -5,7 +5,6 @@ from stagg_ekg_plus import StaggEKG
 
 PORT = 8000
 MAC = "00:1C:97:18:7B:04"
-LISTEN_ON = "0.0.0.0"
 LISTEN_ON = "localhost"
 
 class web_server(http.server.SimpleHTTPRequestHandler):
