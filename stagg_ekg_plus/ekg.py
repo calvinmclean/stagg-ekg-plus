@@ -74,7 +74,19 @@ class StaggEKG(btle.Peripheral):
             return 0, 0
 
     def get_current_temp(self):
-        return self._get_temps()[0][0]
+        current_temp = 32
+        try:
+           current_temp =  self._get_temps()[0][0]
+        except (BTLEInternalError, BTLEDisconnectError) as e:
+            print ("Connection error! Reconnecting... %s" % e)
+            self.connect()
+            try:
+                current_temp =  self._get_temps()[0][0]
+            except TypeError as e:
+                print("Using failback current temp... Error: %s" % e)
+        except TypeError as e:
+            print("Using failback current temp... Error: %s" % e)
+        return current_temp
 
     def get_target_temp(self):
         return self._get_temps()[1][0]
