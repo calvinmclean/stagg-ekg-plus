@@ -1,4 +1,5 @@
 from bluepy import btle
+from bluepy.btle import BTLEInternalError, BTLEDisconnectError
 
 class StaggEKGDelegate(btle.DefaultDelegate):
     """
@@ -32,7 +33,14 @@ class StaggEKG(btle.Peripheral):
             self.characteristic.write(bytes.fromhex("efdd0b3031323334353637383930313233349a6d"), withResponse=False)
 
     def connect(self):
-        super().__init__(self.MAC)
+        attempts = 0
+        while attempts < 5:
+            try:
+                super().__init__(self.MAC)
+                break
+            except (BTLEInternalError, BTLEDisconnectError) as e:
+                attempts += 1
+                print ("Failed to connect... Attempt: %s Error: %s" % (attempts, e))
         self.service = self.getServiceByUUID("00001820-0000-1000-8000-00805f9b34fb")
         self.characteristic = self.service.getCharacteristics()[0]
         # Authenticate
