@@ -106,9 +106,17 @@ class StaggEKG(btle.Peripheral):
     def on(self):
         if not self.connected:
             self.connect()
-        self.characteristic.write(bytes.fromhex("efdd0a0000010100"), withResponse=False)
+        try:
+            self.characteristic.write(bytes.fromhex("efdd0a0000010100"), withResponse=False)
+        except (BTLEInternalError, BTLEDisconnectError) as e:
+            self.connect()
+            self.characteristic.write(bytes.fromhex("efdd0a0000010100"), withResponse=False)
 
     def off(self):
         if not self.connected:
             self.connect()
-        self.characteristic.write(bytes.fromhex("efdd0a0400000400"), withResponse=False)
+        try:
+            self.characteristic.write(bytes.fromhex("efdd0a0400000400"), withResponse=False)
+        except (BTLEInternalError, BTLEDisconnectError) as e:
+            self.connect()
+            self.characteristic.write(bytes.fromhex("efdd0a0400000400"), withResponse=False)
