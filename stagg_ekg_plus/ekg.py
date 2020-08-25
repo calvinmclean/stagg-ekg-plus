@@ -40,7 +40,7 @@ class StaggEKG(btle.Peripheral):
                 break
             except (BTLEInternalError, BTLEDisconnectError) as e:
                 attempts += 1
-                print ("Failed to connect... Attempt: %s Error: %s" % (attempts, e))
+                print("Failed to connect... Attempt: %s Error: %s" % (attempts, e))
         self.service = self.getServiceByUUID("00001820-0000-1000-8000-00805f9b34fb")
         self.characteristic = self.service.getCharacteristics()[0]
         # Authenticate
@@ -78,7 +78,7 @@ class StaggEKG(btle.Peripheral):
         try:
            current_temp =  self._get_temps()[0][0]
         except (BTLEInternalError, BTLEDisconnectError) as e:
-            print ("Connection error! Reconnecting... %s" % e)
+            print("Connection error! Reconnecting... %s" % e)
             self.connect()
             try:
                 current_temp =  self._get_temps()[0][0]
@@ -93,7 +93,7 @@ class StaggEKG(btle.Peripheral):
         try:
             target_temp = self._get_temps()[1][0]
         except (BTLEInternalError, BTLEDisconnectError) as e:
-            print ("Connection error! Reconnecting... %s" % e)
+            print("Connection error! Reconnecting... %s" % e)
             self.connect()
             try:
                 target_temp = self._get_temps()[1][0]
@@ -109,6 +109,7 @@ class StaggEKG(btle.Peripheral):
         try:
             self.characteristic.write(bytes.fromhex("efdd0a0000010100"), withResponse=False)
         except (BTLEInternalError, BTLEDisconnectError) as e:
+            print("Connection error! Reconnecting... %s" % e)
             self.connect()
             self.characteristic.write(bytes.fromhex("efdd0a0000010100"), withResponse=False)
 
@@ -118,5 +119,6 @@ class StaggEKG(btle.Peripheral):
         try:
             self.characteristic.write(bytes.fromhex("efdd0a0400000400"), withResponse=False)
         except (BTLEInternalError, BTLEDisconnectError) as e:
+            print("Connection error! Reconnecting... %s" % e)
             self.connect()
             self.characteristic.write(bytes.fromhex("efdd0a0400000400"), withResponse=False)
