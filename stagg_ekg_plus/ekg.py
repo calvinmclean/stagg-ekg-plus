@@ -1,4 +1,6 @@
 from bluepy import btle
+from bluepy.btle import BTLEInternalError, BTLEDisconnectError
+from time import sleep
 
 class StaggEKGDelegate(btle.DefaultDelegate):
     """
@@ -32,7 +34,16 @@ class StaggEKG(btle.Peripheral):
             self.characteristic.write(bytes.fromhex("efdd0b3031323334353637383930313233349a6d"), withResponse=False)
 
     def connect(self):
-        super().__init__(self.MAC)
+        attempts = 0
+        while attempts < 10:
+            try:
+                super().__init__(self.MAC)
+                break
+            except (BTLEInternalError, BTLEDisconnectError) as e:
+                attempts += 1
+                print("Failed to connect... Attempt: %s Error: %s" % (attempts, e))
+                print("Retrying in 5 seconds...")
+                sleep(5)
         self.service = self.getServiceByUUID("00001820-0000-1000-8000-00805f9b34fb")
         self.characteristic = self.service.getCharacteristics()[0]
         # Authenticate
@@ -49,7 +60,12 @@ class StaggEKG(btle.Peripheral):
             raise ValueError("temp must be between 104 and 212")
         if not self.connected:
             self.connect()
-        self.characteristic.write(bytes.fromhex("efdd0a0001{hex}{hex}01".format(hex=hex(temp)[2:])), withResponse=False)
+        try:
+            self.characteristic.write(bytes.fromhex("efdd0a0001{hex}{hex}01".format(hex=hex(temp)[2:])), withResponse=False)
+        except (BTLEInternalError, BTLEDisconnectError) as e:
+            print("Connection error! Reconnecting... %s" % e)
+            self.connect()
+            self.characteristic.write(bytes.fromhex("efdd0a0001{hex}{hex}01".format(hex=hex(temp)[2:])), withResponse=False)
 
     def _get_temps(self):
         self.writeCharacteristic(self.characteristic.valHandle + 1, b"\x01\x00")
@@ -65,19 +81,52 @@ class StaggEKG(btle.Peripheral):
                 return notifications[i - 2], notifications[i - 1]
             return 0, 0
 
-
     def get_current_temp(self):
-        return self._get_temps()[0][0]
+        current_temp = 32
+        try:
+           current_temp =  self._get_temps()[0][0]
+        except (BTLEInternalError, BTLEDisconnectError) as e:
+            print("Connection error! Reconnecting... Error: %s" % e)
+            self.connect()
+            try:
+                current_temp =  self._get_temps()[0][0]
+            except TypeError as e:
+                print("Using failback current temp... Error: %s" % e)
+        except TypeError as e:
+            print("Using failback current temp... Error: %s" % e)
+        return current_temp
 
     def get_target_temp(self):
-        return self._get_temps()[1][0]
+        target_temp = 212
+        try:
+            target_temp = self._get_temps()[1][0]
+        except (BTLEInternalError, BTLEDisconnectError) as e:
+            print("Connection error! Reconnecting... %s" % e)
+            self.connect()
+            try:
+                target_temp = self._get_temps()[1][0]
+            except TypeError as e:
+                print("Setting default target temp... %s" % e)
+        except TypeError as e:
+            print("Setting default target temp... %s" % e)
+        return target_temp
 
     def on(self):
         if not self.connected:
             self.connect()
-        self.characteristic.write(bytes.fromhex("efdd0a0000010100"), withResponse=False)
+        try:
+            self.characteristic.write(bytes.fromhex("efdd0a0000010100"), withResponse=False)
+        except (BTLEInternalError, BTLEDisconnectError) as e:
+            print("Connection error! Reconnecting... %s" % e)
+            self.connect()
+            self.characteristic.write(bytes.fromhex("efdd0a0000010100"), withResponse=False)
 
     def off(self):
         if not self.connected:
             self.connect()
-        self.characteristic.write(bytes.fromhex("efdd0a0400000400"), withResponse=False)
+        try:
+            self.characteristic.write(bytes.fromhex("efdd0a0400000400"), withResponse=False)
+        except (BTLEInternalError, BTLEDisconnectError) as e:
+            print("Connection error! Reconnecting... %s" % e)
+            self.connect()
+            self.characteristic.write(bytes.fromhex("efdd0a0400000400"), withResponse=False)
